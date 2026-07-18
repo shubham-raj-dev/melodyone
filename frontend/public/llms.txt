@@ -1,0 +1,22 @@
+# MelodyOne
+
+MelodyOne is a music streaming web app. Users search for YouTube tracks and stream high-quality audio. Built with Next.js, TypeScript, Tailwind CSS, Flask, yt-dlp, and PostgreSQL.
+
+## Key Features
+- YouTube audio search and streaming
+- User playlists and favorites
+- PWA installable on mobile/desktop
+
+## Tech Stack
+- Frontend: Next.js 15, TypeScript, Tailwind CSS, Zustand
+- Backend: Flask, yt-dlp
+- Database: Neon PostgreSQL, Drizzle ORM
+- Cache: Upstash Redis
+- Auth: Clerk
+- Storage: Backblaze B2, Cloudinary
+
+## Links
+- Website: https://melodyone.vercel.app
+
+## Author
+Shubham Raj — Full-Stack Developer & Music Enthusiast

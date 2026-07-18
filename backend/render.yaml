@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: melodyone-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app
+    plan: free

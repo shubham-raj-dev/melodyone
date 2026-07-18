@@ -1,0 +1,14 @@
+{
+  "name": "MelodyOne",
+  "short_name": "MelodyOne",
+  "description": "Stream your favorite YouTube music with premium audio quality.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F4F7FB",
+  "theme_color": "#6366F1",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
