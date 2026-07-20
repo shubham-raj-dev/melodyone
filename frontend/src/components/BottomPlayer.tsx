@@ -3,7 +3,7 @@
 import { usePlayer } from "@/context/PlayerContext"
 
 export default function BottomPlayer() {
-  const { currentSong, isPlaying, togglePlay } = usePlayer()
+  const { currentSong, isPlaying, togglePlay, playNext, playPrevious, queue, currentIndex } = usePlayer()
 
   return (
     <div className="h-[90px] w-full bg-white/60 backdrop-blur-[40px] border-t border-white/80 shadow-[0_-10px_30px_rgba(0,0,0,0.02)] flex items-center justify-between px-8 z-50">
@@ -23,7 +23,13 @@ export default function BottomPlayer() {
 
       <div className="flex flex-col items-center justify-center w-2/4 max-w-[500px]">
         <div className="flex items-center gap-6 mb-2">
-          <button className="text-slate-600 hover:text-indigo-600"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg></button>
+          <button
+            onClick={playPrevious}
+            disabled={currentIndex <= 0}
+            className={`hover:text-indigo-600 transition-colors ${currentIndex <= 0 ? "text-slate-300 cursor-not-allowed" : "text-slate-600"}`}
+          >
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
+          </button>
 
           <button
             onClick={togglePlay}
@@ -37,7 +43,13 @@ export default function BottomPlayer() {
             )}
           </button>
 
-          <button className="text-slate-600 hover:text-indigo-600"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)" /></svg></button>
+          <button
+            onClick={playNext}
+            disabled={currentIndex >= queue.length - 1}
+            className={`hover:text-indigo-600 transition-colors ${currentIndex >= queue.length - 1 ? "text-slate-300 cursor-not-allowed" : "text-slate-600"}`}
+          >
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)" /></svg>
+          </button>
         </div>
         <div className="flex items-center w-full gap-3 text-[10px] font-bold text-slate-400">
           <span>0:00</span>

@@ -2,7 +2,7 @@ import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
 
 const RightSidebar = () => {
-  const { currentSong, isPlaying, togglePlay } = usePlayer();
+  const { currentSong, isPlaying, togglePlay, playNext, playPrevious, queue, currentIndex } = usePlayer();
 
   return (
     <aside className="w-[320px] bg-white/40 backdrop-blur-[40px] border border-white/60 rounded-[2rem] shadow-[0_8px_32px_rgba(31,38,135,0.05)] flex flex-col p-6 z-10 shrink-0">
@@ -46,7 +46,13 @@ const RightSidebar = () => {
       </div>
 
       <div className="flex items-center justify-center gap-6 mb-8">
-        <button className="text-slate-400 hover:text-indigo-500"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button
+          onClick={playPrevious}
+          disabled={currentIndex <= 0}
+          className={`transition-colors ${currentIndex <= 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 hover:text-indigo-500'}`}
+        >
+          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
 
         <button
           onClick={togglePlay}
@@ -60,7 +66,13 @@ const RightSidebar = () => {
           )}
         </button>
 
-        <button className="text-slate-400 hover:text-indigo-500"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)"/></svg></button>
+        <button
+          onClick={playNext}
+          disabled={currentIndex >= queue.length - 1}
+          className={`transition-colors ${currentIndex >= queue.length - 1 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 hover:text-indigo-500'}`}
+        >
+          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)"/></svg>
+        </button>
       </div>
 
       <button className="w-full py-3 bg-white/60 hover:bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 shadow-sm transition-colors flex items-center justify-center gap-2">
