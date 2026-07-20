@@ -2,9 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-from engine import fetch_audio_stream
+import requests
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://melodyone.vercel.app"])
@@ -20,57 +18,45 @@ def add_security_headers(response):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
 
-SPOTIPY_CLIENT_ID = 'your_spotify_client_id'
-SPOTIPY_CLIENT_SECRET = 'your_spotify_client_secret'
-
-sp = None
-try:
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-        client_id=SPOTIPY_CLIENT_ID,
-        client_secret=SPOTIPY_CLIENT_SECRET
-    ))
-except:
-    print("Spotify credentials not configured. Falling back to yt-dlp only.")
-
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({"status": "ok", "service": "melodyone-backend"})
+    return jsonify({"status": "ok", "service": "melodyone-backend", "source": "itunes"})
 
 @app.route('/', methods=['GET'])
 def home():
-    return "<h1>MelodyOne Backend is Running</h1><p>API: /api/search?song=NAME</p>"
+    return "<h1>MelodyOne Backend</h1><p>API: /api/search?song=NAME</p>"
 
 @app.route('/api/search', methods=['GET'])
 @limiter.limit("30 per minute")
 def search_song():
     query = request.args.get('song')
     if not query:
-        return jsonify({"error": "Song name required"}), 400
+        return jsonify({"error": "Bhai, query toh bhej"}), 400
 
-    # Try Spotify first
-    if sp:
-        try:
-            results = sp.search(q=query, limit=1, type='track')
-            tracks = results['tracks']['items']
-            if tracks:
-                track = tracks[0]
-                data = {
-                    "title": track['name'],
-                    "artist": track['artists'][0]['name'],
-                    "thumbnail": track['album']['images'][0]['url'] if track['album']['images'] else None,
-                    "stream_url": track['preview_url']
-                }
-                if data['stream_url']:
-                    return jsonify(data)
-        except Exception as e:
-            print(f"Spotify error: {e}")
+    print(f"Searching iTunes for: {query}")
 
-    # Fallback to yt-dlp
-    print(f"Falling back to yt-dlp for: {query}")
-    result = fetch_audio_stream(query)
-    if result:
+    try:
+        url = f"https://itunes.apple.com/search?term={query}&limit=1&entity=song"
+        response = requests.get(url, timeout=10)
+        data = response.json()
+
+        if data['resultCount'] == 0:
+            return jsonify({"error": "Gaana nahi mila"}), 404
+
+        track = data['results'][0]
+
+        result = {
+            "title": track['trackName'],
+            "artist": track['artistName'],
+            "thumbnail": track.get('artworkUrl100', '').replace('100x100', '600x600'),
+            "stream_url": track.get('previewUrl', '')
+        }
+
         return jsonify(result)
-    return jsonify({"error": "Gaana nahi mila"}), 404
+
+    except Exception as e:
+        print(f"iTunes API Error: {e}")
+        return jsonify({"error": "Backend failed to fetch data"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5000, debug=True)

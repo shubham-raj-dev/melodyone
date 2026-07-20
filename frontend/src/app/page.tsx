@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
+import { usePlayerStore } from "@/store/player-store"
+import type { Song } from "@/types"
 
 const forYouCards = [
   { title: "Daily Mix", desc: "Your daily favourites", img: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=400&q=80" },
@@ -30,25 +32,32 @@ const topArtists = [
 
 export default function Home() {
   const [query, setQuery] = useState("")
-  const [song, setSong] = useState<{ title: string; artist: string; stream_url: string; thumbnail: string } | null>(null)
+  const [results, setResults] = useState<Song[]>([])
   const [loading, setLoading] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  const searchAndPlaySong = async (searchQuery = query) => {
+  const { currentSong, isPlaying, queue, setSong, togglePlay, setIsPlaying, addToQueue, next, prev } = usePlayerStore()
+
+  useEffect(() => {
+    if (!audioRef.current) return
+    if (isPlaying) {
+      audioRef.current.play().catch(() => setIsPlaying(false))
+    } else {
+      audioRef.current.pause()
+    }
+  }, [currentSong, isPlaying, setIsPlaying])
+
+  const searchSongs = async (searchQuery = query) => {
     if (!searchQuery) return
     setQuery(searchQuery)
     setLoading(true)
-    setSong(null)
+    setResults([])
 
     try {
       const res = await fetch(`http://127.0.0.1:5000/api/search?song=${encodeURIComponent(searchQuery)}`)
       const data = await res.json()
       if (data.stream_url) {
-        setSong(data)
-        setIsPlaying(true)
-      } else {
-        alert("Song not found!")
+        setResults([data])
       }
     } catch {
       console.error("Backend error")
@@ -56,27 +65,46 @@ export default function Home() {
     setLoading(false)
   }
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      isPlaying ? audioRef.current.pause() : audioRef.current.play()
-      setIsPlaying(!isPlaying)
-    }
+  const handlePlay = (song: Song) => {
+    setSong(song)
+  }
+
+  const handleAddToQueue = (song: Song) => {
+    addToQueue(song)
+  }
+
+  const handleNext = () => {
+    next()
+  }
+
+  const handlePrev = () => {
+    prev()
+  }
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = Math.floor(seconds % 60)
+    return `${m}:${s.toString().padStart(2, "0")}`
   }
 
   return (
     <div className="relative h-screen w-full font-sans text-slate-800 overflow-hidden flex flex-col bg-[#eef2f9]">
-      {/* Soft color blobs */}
       <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] bg-indigo-200/40 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-fuchsia-100/50 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute top-[20%] left-[30%] w-[40vw] h-[40vw] bg-blue-100/40 rounded-full blur-[100px] pointer-events-none" />
 
-      {song && (
-        <audio ref={audioRef} src={song.stream_url} autoPlay onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} />
+      {currentSong && (
+        <audio
+          ref={audioRef}
+          src={currentSong.stream_url}
+          autoPlay
+          onEnded={handleNext}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
       )}
 
-      {/* TOP SECTION: 3 Columns */}
       <div className="flex flex-1 overflow-hidden h-[calc(100vh-90px)] p-4 gap-4">
-        {/* LEFT SIDEBAR */}
         <aside className="w-[260px] bg-white/40 backdrop-blur-[40px] border border-white/60 rounded-[2rem] shadow-[0_8px_32px_rgba(31,38,135,0.05)] flex flex-col p-6 z-10">
           <div className="flex items-center gap-3 mb-8 cursor-pointer">
             <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white shadow-md">
@@ -96,28 +124,6 @@ export default function Home() {
                 {item}
               </div>
             ))}
-
-            <div className="mt-8 mb-2 px-4 flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Playlists</span>
-              <button className="text-slate-400 hover:text-indigo-500">+</button>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-3 px-4 py-2 cursor-pointer group">
-                <img src="https://images.unsplash.com/photo-1558507652-2d9626c4e67a?w=50&q=80" className="w-8 h-8 rounded-lg object-cover shadow-sm" alt="" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600">Chill Vibes</p>
-                  <p className="text-[10px] text-slate-400">50 Songs</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-2 cursor-pointer group">
-                <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=50&q=80" className="w-8 h-8 rounded-lg object-cover shadow-sm" alt="" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600">Workout Mix</p>
-                  <p className="text-[10px] text-slate-400">40 Songs</p>
-                </div>
-              </div>
-            </div>
           </nav>
 
           <div className="mt-auto space-y-4">
@@ -139,7 +145,6 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* MAIN CONTENT */}
         <main className="flex-1 h-full overflow-y-auto px-4 z-10 custom-scrollbar">
           <header className="flex items-center justify-between gap-6 mb-8 mt-2">
             <div>
@@ -150,13 +155,13 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-full px-5 py-2.5 w-80 focus-within:bg-white transition-all">
+              <div className="relative flex items-center bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-full px-5 py-2.5 w-80 focus-within:bg-white transition-all">
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-400 mr-2 shrink-0" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && searchAndPlaySong()}
+                  onKeyDown={(e) => e.key === "Enter" && searchSongs()}
                   placeholder="Search songs, artists, albums..."
                   className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder-slate-400 text-slate-800"
                 />
@@ -175,7 +180,40 @@ export default function Home() {
             </div>
           )}
 
-          {/* For You */}
+          {results.length > 0 && (
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-4">Search Results</h3>
+              <div className="space-y-2">
+                {results.map((song, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 rounded-[1.25rem] bg-white/50 backdrop-blur-md border border-white/80 hover:bg-white/80 transition-all group">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <img src={song.thumbnail} alt="" className="w-12 h-12 rounded-xl object-cover shadow-sm shrink-0" />
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-sm text-slate-900 truncate">{song.title}</h4>
+                        <p className="text-xs font-medium text-slate-500 truncate">{song.artist}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => handlePlay(song)}
+                        className="w-9 h-9 flex items-center justify-center bg-indigo-500 text-white rounded-full shadow-sm hover:scale-105 transition-transform"
+                      >
+                        <svg width="14" height="14" fill="currentColor" className="ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                      </button>
+                      <button
+                        onClick={() => handleAddToQueue(song)}
+                        className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 bg-white rounded-full shadow-sm transition-colors"
+                        title="Add to queue"
+                      >
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="mb-8">
             <div className="flex justify-between items-end mb-4">
               <h3 className="text-xl font-bold text-slate-900">For You</h3>
@@ -198,7 +236,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Recently Played */}
           <section className="mb-8">
             <div className="flex justify-between items-end mb-4">
               <h3 className="text-xl font-bold text-slate-900">Recently Played</h3>
@@ -206,7 +243,7 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-4 gap-5">
               {recentlyPlayed.map((item, idx) => (
-                <div key={idx} className="group cursor-pointer">
+                <div key={idx} onClick={() => searchSongs(item.title)} className="group cursor-pointer">
                   <div className="relative rounded-[1.5rem] overflow-hidden shadow-sm mb-3 aspect-square border border-white/40">
                     <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     <div className="absolute bottom-2 right-2 w-10 h-10 bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all shadow-sm">
@@ -220,13 +257,12 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Lower Section */}
           <div className="grid grid-cols-2 gap-6 pb-6">
             <section className="bg-white/40 backdrop-blur-[30px] border border-white/60 rounded-[2rem] p-5 shadow-sm">
               <h3 className="text-lg font-bold text-slate-900 mb-4">Trending Now</h3>
               <div className="space-y-2">
                 {trendingNow.map((item, idx) => (
-                  <div key={idx} onClick={() => searchAndPlaySong(item.title)} className="flex items-center justify-between p-2 rounded-[1.25rem] hover:bg-white/60 transition-all cursor-pointer group">
+                  <div key={idx} onClick={() => searchSongs(item.title)} className="flex items-center justify-between p-2 rounded-[1.25rem] hover:bg-white/60 transition-all cursor-pointer group">
                     <div className="flex items-center gap-3">
                       <img src={item.img} alt="" className="w-12 h-12 rounded-xl object-cover shadow-sm" />
                       <div>
@@ -264,7 +300,6 @@ export default function Home() {
           </div>
         </main>
 
-        {/* RIGHT SIDEBAR (Now Playing) */}
         <aside className="w-[300px] bg-white/40 backdrop-blur-[40px] border border-white/60 rounded-[2rem] shadow-[0_8px_32px_rgba(31,38,135,0.05)] flex flex-col p-6 z-10">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-lg text-slate-900">Now Playing</h3>
@@ -272,8 +307,8 @@ export default function Home() {
           </div>
 
           <div className="w-full aspect-square rounded-[2rem] overflow-hidden shadow-lg mb-6 relative">
-            {song?.thumbnail ? (
-              <img src={song.thumbnail} alt="" className="w-full h-full object-cover" />
+            {currentSong?.thumbnail ? (
+              <img src={currentSong.thumbnail} alt="" className="w-full h-full object-cover" />
             ) : (
               <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80" alt="" className="w-full h-full object-cover opacity-90" />
             )}
@@ -282,15 +317,15 @@ export default function Home() {
 
           <div className="mb-6">
             <h2 className="text-xl font-extrabold text-slate-900 truncate flex items-center justify-between">
-              {song ? song.title : "Not Playing"}
+              {currentSong ? currentSong.title : "Not Playing"}
               <button className="text-indigo-500 text-sm">❤</button>
             </h2>
-            <p className="text-slate-500 font-medium text-sm truncate">{song ? song.artist : "Select a track to start"}</p>
+            <p className="text-slate-500 font-medium text-sm truncate">{currentSong ? currentSong.artist : "Select a track to start"}</p>
           </div>
 
           <div className="mb-6">
             <div className="w-full h-1.5 bg-slate-200/60 rounded-full overflow-hidden mb-2">
-              <div className={`h-full bg-indigo-500 rounded-full ${isPlaying ? "w-1/3" : "w-0"} transition-all duration-1000`} />
+              <div className={`h-full bg-indigo-500 rounded-full ${isPlaying ? "animate-pulse w-1/3" : "w-0"} transition-all duration-1000`} />
             </div>
             <div className="flex justify-between text-[10px] font-bold text-slate-400">
               <span>{isPlaying ? "1:32" : "0:00"}</span>
@@ -300,14 +335,14 @@ export default function Home() {
 
           <div className="flex justify-between items-center mb-6">
             <button className="text-slate-400 hover:text-indigo-500 transition-colors"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" /></svg></button>
-            <button className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:scale-105 transition-transform text-slate-700"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg></button>
+            <button onClick={handlePrev} className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:scale-105 transition-transform text-slate-700"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg></button>
             <button
-              onClick={song ? togglePlay : undefined}
-              className={`w-14 h-14 flex items-center justify-center bg-indigo-500 rounded-full shadow-[0_8px_15px_rgba(99,102,241,0.3)] text-white transition-transform ${song ? "hover:scale-110 active:scale-95" : "opacity-50"}`}
+              onClick={currentSong ? togglePlay : undefined}
+              className={`w-14 h-14 flex items-center justify-center bg-indigo-500 rounded-full shadow-[0_8px_15px_rgba(99,102,241,0.3)] text-white transition-transform ${currentSong ? "hover:scale-110 active:scale-95" : "opacity-50"}`}
             >
               {isPlaying ? <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg> : <svg width="24" height="24" fill="currentColor" className="ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>}
             </button>
-            <button className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:scale-105 transition-transform text-slate-700"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)" /></svg></button>
+            <button onClick={handleNext} className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm hover:scale-105 transition-transform text-slate-700"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)" /></svg></button>
             <button className="text-slate-400 hover:text-indigo-500 transition-colors"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" /></svg></button>
           </div>
 
@@ -315,16 +350,33 @@ export default function Home() {
             <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
             Lyrics
           </button>
+
+          {queue.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-bold text-slate-900 mb-3">Queue ({queue.length})</h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                {queue.map((song, idx) => (
+                  <div key={idx} className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/50 transition-colors cursor-pointer group" onClick={() => handlePlay(song)}>
+                    <img src={song.thumbnail} alt="" className="w-8 h-8 rounded-lg object-cover shadow-sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">{song.title}</p>
+                      <p className="text-[10px] text-slate-500 truncate">{song.artist}</p>
+                    </div>
+                    <button className="text-slate-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all text-xs">✕</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
       </div>
 
-      {/* BOTTOM PERSISTENT PLAYER */}
       <div className="h-[90px] w-full bg-white/60 backdrop-blur-[40px] border-t border-white/80 shadow-[0_-10px_30px_rgba(0,0,0,0.02)] flex items-center justify-between px-8 z-50">
         <div className="flex items-center gap-4 w-1/4">
-          <img src={song ? song.thumbnail : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=100&q=80"} className="w-14 h-14 rounded-xl object-cover shadow-sm" alt="" />
+          <img src={currentSong ? currentSong.thumbnail : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=100&q=80"} className="w-14 h-14 rounded-xl object-cover shadow-sm" alt="" />
           <div className="overflow-hidden">
-            <h4 className="font-bold text-slate-900 truncate">{song ? song.title : "Not Playing"}</h4>
-            <p className="text-xs text-slate-500 font-medium truncate">{song ? song.artist : "Select a track"}</p>
+            <h4 className="font-bold text-slate-900 truncate">{currentSong ? currentSong.title : "Not Playing"}</h4>
+            <p className="text-xs text-slate-500 font-medium truncate">{currentSong ? currentSong.artist : "Select a track"}</p>
           </div>
           <button className="ml-2 text-slate-400 hover:text-indigo-500 text-sm">❤</button>
         </div>
@@ -332,17 +384,17 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center w-2/4 max-w-[500px]">
           <div className="flex items-center gap-6 mb-2">
             <button className="text-slate-400 hover:text-indigo-500"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" /></svg></button>
-            <button className="text-slate-600 hover:text-indigo-600"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg></button>
-            <button onClick={song ? togglePlay : undefined} className={`w-10 h-10 flex items-center justify-center bg-indigo-500 rounded-full text-white hover:scale-105 transition-transform ${song ? "" : "opacity-50"}`}>
+            <button onClick={handlePrev} className="text-slate-600 hover:text-indigo-600"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg></button>
+            <button onClick={currentSong ? togglePlay : undefined} className={`w-10 h-10 flex items-center justify-center bg-indigo-500 rounded-full text-white hover:scale-105 transition-transform ${currentSong ? "" : "opacity-50"}`}>
               {isPlaying ? <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg> : <svg width="20" height="20" fill="currentColor" className="ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>}
             </button>
-            <button className="text-slate-600 hover:text-indigo-600"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)" /></svg></button>
+            <button onClick={handleNext} className="text-slate-600 hover:text-indigo-600"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)" /></svg></button>
             <button className="text-slate-400 hover:text-indigo-500"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" /></svg></button>
           </div>
           <div className="flex items-center w-full gap-3 text-[10px] font-bold text-slate-400">
             <span>{isPlaying ? "1:32" : "0:00"}</span>
             <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-              <div className={`h-full bg-indigo-500 rounded-full ${isPlaying ? "w-1/3" : "w-0"} transition-all duration-1000`} />
+              <div className={`h-full bg-indigo-500 rounded-full ${isPlaying ? "animate-pulse w-1/3" : "w-0"} transition-all duration-1000`} />
             </div>
             <span>{isPlaying ? "4:12" : "0:00"}</span>
           </div>
