@@ -34,6 +34,7 @@ export default function Home() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<Song[]>([])
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState("Home")
   const audioRef = useRef<HTMLAudioElement>(null)
 
   const { currentSong, isPlaying, queue, setSong, togglePlay, setIsPlaying, addToQueue, next, prev } = usePlayerStore()
@@ -114,16 +115,30 @@ export default function Home() {
           </div>
 
           <nav className="flex-1 space-y-1">
-            <div className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer bg-indigo-50 shadow-sm text-indigo-600 font-bold transition-all">
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
-              Home
-            </div>
-            {["Explore", "Library", "Playlists", "Artists", "Albums"].map((item) => (
-              <div key={item} className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer text-slate-500 font-semibold hover:bg-white/50 hover:text-slate-800 transition-all">
-                <div className="w-5 h-5 bg-slate-300 rounded-md" />
-                {item}
-              </div>
-            ))}
+            {[
+              { name: 'Home', icon: <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> },
+              { name: 'Explore', icon: <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg> },
+              { name: 'Library', icon: <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"/></svg> },
+              { name: 'Playlists', icon: <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg> },
+              { name: 'Artists', icon: <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> },
+              { name: 'Albums', icon: <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg> }
+            ].map((item) => {
+              const isActive = activeTab === item.name
+              return (
+                <div
+                  key={item.name}
+                  onClick={() => setActiveTab(item.name)}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all ${
+                    isActive
+                      ? 'bg-indigo-50 shadow-sm text-indigo-600 font-bold'
+                      : 'text-slate-500 font-semibold hover:bg-white/50 hover:text-slate-800'
+                  }`}
+                >
+                  {item.icon}
+                  {item.name}
+                </div>
+              )
+            })}
           </nav>
 
           <div className="mt-auto space-y-4">
