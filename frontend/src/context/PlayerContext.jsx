@@ -2,7 +2,15 @@
 
 import React, { createContext, useState, useContext, useRef, useEffect } from 'react';
 
-const PlayerContext = createContext();
+/** @typedef {{ title: string, artist: string, thumbnail: string, stream_url: string }} Song */
+
+/** @type {React.Context<{ currentSong: Song | null, isPlaying: boolean, playSong: (song: Song) => void, togglePlay: () => void }>} */
+const PlayerContext = createContext({
+  currentSong: /** @type {Song | null} */ (null),
+  isPlaying: false,
+  playSong: () => {},
+  togglePlay: () => {},
+});
 
 export const PlayerProvider = ({ children }) => {
   const [currentSong, setCurrentSong] = useState(null);
