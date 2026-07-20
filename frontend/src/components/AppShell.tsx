@@ -1,7 +1,7 @@
 "use client"
 
 import Sidebar from "@/components/Sidebar"
-import NowPlaying from "@/components/NowPlaying"
+import RightSidebar from "@/components/RightSidebar"
 import BottomPlayer from "@/components/BottomPlayer"
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -14,7 +14,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
 
-        <NowPlaying />
+        <RightSidebar />
       </div>
 
       <BottomPlayer />
