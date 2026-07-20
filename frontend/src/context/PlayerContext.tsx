@@ -36,14 +36,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const playSong = useCallback((songData: Song) => {
     if (!audioRef.current) return
-    const existingIndex = queue.findIndex(s => s.stream_url === songData.stream_url)
-    if (existingIndex !== -1) {
-      setCurrentIndex(existingIndex)
-    } else {
-      setQueue(prev => [...prev, songData])
-      setCurrentIndex(queue.length)
-    }
-  }, [queue])
+    setQueue((prevQueue) => {
+      const existingIndex = prevQueue.findIndex(s => s.stream_url === songData.stream_url)
+      if (existingIndex !== -1) {
+        setCurrentIndex(existingIndex)
+        return prevQueue
+      } else {
+        const newQueue = [...prevQueue, songData]
+        setCurrentIndex(newQueue.length - 1)
+        return newQueue
+      }
+    })
+  }, [])
 
   useEffect(() => {
     if (currentSong && audioRef.current) {

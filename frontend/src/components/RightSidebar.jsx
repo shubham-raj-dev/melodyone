@@ -75,6 +75,19 @@ const RightSidebar = () => {
         </button>
       </div>
 
+      {/* Visual Debugger: Queue Status */}
+      <div className="mb-6 bg-slate-100 rounded-xl p-3 border border-slate-200">
+        <div className="flex justify-between items-center mb-2">
+           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Queue Status</h4>
+           <span className="text-xs font-bold bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full">
+             {queue.length} Songs
+           </span>
+        </div>
+        <div className="text-[10px] text-slate-500 font-medium">
+           Current Index: {currentIndex}
+        </div>
+      </div>
+
       <button className="w-full py-3 bg-white/60 hover:bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 shadow-sm transition-colors flex items-center justify-center gap-2">
         <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
         Lyrics
