@@ -58,5 +58,31 @@ def search_song():
         print(f"iTunes API Error: {e}")
         return jsonify({"error": "Backend failed to fetch data"}), 500
 
+@app.route('/api/trending', methods=['GET'])
+def get_trending():
+    print("Fetching trending tracks from Deezer...")
+    try:
+        url = "https://api.deezer.com/chart/0/tracks?limit=4"
+        response = requests.get(url)
+        data = response.json()
+
+        if not data.get('data'):
+            return jsonify({"error": "Trending data nahi mila"}), 404
+
+        trending_tracks = []
+        for track in data['data']:
+            trending_tracks.append({
+                "title": track['title'],
+                "artist": track['artist']['name'],
+                "thumbnail": track['album']['cover_xl'],
+                "stream_url": track['preview']
+            })
+
+        return jsonify(trending_tracks)
+
+    except Exception as e:
+        print(f"Deezer API Error: {e}")
+        return jsonify({"error": "Backend failed to fetch trending data"}), 500
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

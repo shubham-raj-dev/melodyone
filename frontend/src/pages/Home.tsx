@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePlayer } from '@/context/PlayerContext';
 import type { Song } from '@/types';
 
@@ -8,8 +8,27 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [searchedSong, setSearchedSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(false);
+  const [trending, setTrending] = useState<Song[]>([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
 
   const { playSong } = usePlayer();
+
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/trending');
+        const data = await response.json();
+        if (!data.error) {
+          setTrending(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch trending:", error);
+      } finally {
+        setTrendingLoading(false);
+      }
+    };
+    fetchTrending();
+  }, []);
 
   const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && query.trim() !== '') {
@@ -88,18 +107,34 @@ export default function Home() {
 
       <section className="mb-8">
         <div className="flex justify-between items-end mb-4">
-          <h3 className="text-xl font-bold text-slate-900">For You</h3>
+          <h3 className="text-xl font-bold text-slate-900">Trending Now</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="relative h-40 rounded-[1.5rem] overflow-hidden group shadow-sm bg-gradient-to-br from-blue-400 to-indigo-500 p-4 flex flex-col justify-end">
-            <h4 className="text-white text-lg font-bold">Daily Mix</h4>
-            <p className="text-white/80 text-xs font-medium">Your daily favourites</p>
+
+        {trendingLoading ? (
+          <div className="text-slate-500 font-medium text-sm">Loading global charts...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {trending.map((track, index) => (
+              <div
+                key={index}
+                onClick={() => playSong(track)}
+                className="relative h-48 rounded-[1.5rem] overflow-hidden group shadow-sm cursor-pointer hover:shadow-lg transition-all"
+              >
+                <img src={track.thumbnail} alt={track.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 p-4 w-full flex justify-between items-end">
+                  <div className="overflow-hidden">
+                    <h4 className="text-white text-md font-bold truncate">{track.title}</h4>
+                    <p className="text-white/70 text-xs font-medium truncate">{track.artist}</p>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg width="16" height="16" fill="currentColor" className="ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="relative h-40 rounded-[1.5rem] overflow-hidden group shadow-sm bg-gradient-to-br from-cyan-400 to-teal-400 p-4 flex flex-col justify-end">
-            <h4 className="text-white text-lg font-bold">Chill Vibes</h4>
-            <p className="text-white/80 text-xs font-medium">50+ Songs</p>
-          </div>
-        </div>
+        )}
       </section>
     </div>
   );
