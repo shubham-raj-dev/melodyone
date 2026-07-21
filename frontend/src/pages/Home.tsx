@@ -134,12 +134,12 @@ export default function Home() {
               >
                 <img src={track.thumbnail} alt={track.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 p-4 w-full flex justify-between items-end">
-                  <div className="overflow-hidden">
+                <div className="absolute bottom-0 left-0 p-4 w-full flex justify-between items-end gap-3">
+                  <div className="overflow-hidden flex-1">
                     <h4 className="text-white text-md font-bold truncate">{track.title}</h4>
                     <p className="text-white/70 text-xs font-medium truncate">{track.artist}</p>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-8 h-8 shrink-0 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
                     <svg width="16" height="16" fill="currentColor" className="ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                   </div>
                 </div>
