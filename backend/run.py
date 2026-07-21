@@ -60,29 +60,30 @@ def search_song():
 
 @app.route('/api/trending', methods=['GET'])
 def get_trending():
-    print("Fetching trending tracks from Deezer...")
+    print("Fetching trending tracks from Apple RSS...")
     try:
-        url = "https://api.deezer.com/chart/0/tracks?limit=4"
-        response = requests.get(url)
+        url = "https://rss.applemarketingtools.com/api/v2/in/music/most-played/10/songs.json"
+        response = requests.get(url, timeout=10)
         data = response.json()
 
-        if not data.get('data'):
+        results = data.get('feed', {}).get('results', [])
+        if not results:
             return jsonify({"error": "Trending data nahi mila"}), 404
 
         trending_tracks = []
-        for track in data['data']:
+        for track in results[:4]:
             trending_tracks.append({
-                "title": track['title'],
-                "artist": track['artist']['name'],
-                "thumbnail": track['album']['cover_xl'],
-                "stream_url": track['preview']
+                "title": track['name'],
+                "artist": track['artistName'],
+                "thumbnail": track['artworkUrl100'].replace('100x100', '600x600'),
+                "stream_url": ""  # Search se milega jab user click kare
             })
 
         return jsonify(trending_tracks)
 
     except Exception as e:
-        print(f"Deezer API Error: {e}")
-        return jsonify({"error": "Backend failed to fetch trending data"}), 500
+        print(f"Apple RSS Error: {e}")
+        return jsonify({"error": "Backend code mein issue hai"}), 500
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

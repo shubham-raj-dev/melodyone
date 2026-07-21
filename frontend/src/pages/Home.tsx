@@ -30,6 +30,18 @@ export default function Home() {
     fetchTrending();
   }, []);
 
+  const playTrending = async (track: Song) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:5000/api/search?song=${encodeURIComponent(track.title + ' ' + track.artist)}`);
+      const data = await res.json();
+      if (data.stream_url) {
+        playSong(data);
+      }
+    } catch (error) {
+      console.error("Failed to play trending:", error);
+    }
+  };
+
   const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && query.trim() !== '') {
       setLoading(true);
@@ -117,7 +129,7 @@ export default function Home() {
             {trending.map((track, index) => (
               <div
                 key={index}
-                onClick={() => playSong(track)}
+                onClick={() => playTrending(track)}
                 className="relative h-48 rounded-[1.5rem] overflow-hidden group shadow-sm cursor-pointer hover:shadow-lg transition-all"
               >
                 <img src={track.thumbnail} alt={track.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
