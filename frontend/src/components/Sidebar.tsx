@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import { Show, SignInButton, UserButton } from "@clerk/nextjs"
 
 const navItems = [
   {
@@ -68,22 +69,27 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto space-y-4">
-        <div className="bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl p-4 shadow-sm border border-white/60 text-center relative overflow-hidden group cursor-pointer">
-          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <p className="text-xs font-bold text-indigo-900 mb-2">Let the music<br />heal your soul.</p>
-          <span className="text-2xl">🎵</span>
-        </div>
+      {/* Auth Section */}
+      <div className="mt-auto px-0 pb-0">
+        <Show when="signed-in">
+          <div className="bg-white/60 backdrop-blur-md rounded-2xl p-2 flex items-center justify-between border border-white/80 shadow-sm transition-all hover:bg-white/80">
+            <div className="flex items-center gap-3">
+              <UserButton />
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-slate-800">My Account</span>
+                <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full w-max">PREMIUM</span>
+              </div>
+            </div>
+          </div>
+        </Show>
 
-        <div className="bg-white/60 border border-white/80 rounded-[1.25rem] p-3 flex items-center gap-3 shadow-sm cursor-pointer hover:bg-white transition-colors">
-          <div className="w-10 h-10 rounded-full overflow-hidden border border-white shadow-sm">
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-sm font-bold text-slate-800">Shubham Raj</h4>
-            <span className="text-[10px] bg-indigo-500 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Premium</span>
-          </div>
-        </div>
+        <Show when="signed-out">
+          <SignInButton mode="modal">
+            <button className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-bold shadow-md hover:shadow-lg transition-all text-center">
+              Sign In / Sign Up
+            </button>
+          </SignInButton>
+        </Show>
       </div>
     </aside>
   )

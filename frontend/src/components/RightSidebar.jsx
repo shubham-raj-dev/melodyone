@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 
 const formatTime = (time) => {
@@ -10,27 +10,46 @@ const formatTime = (time) => {
 
 const RightSidebar = () => {
   const { currentSong, isPlaying, togglePlay, playNext, playPrevious, queue, currentIndex, currentTime, duration, seek } = usePlayer();
-  const [lyrics, setLyrics] = useState(null);
-  const [lyricsLoading, setLyricsLoading] = useState(false);
-  const [showLyrics, setShowLyrics] = useState(false);
 
-  const fetchLyrics = async () => {
-    if (!currentSong) return;
-    setLyricsLoading(true);
+  const [showLyrics, setShowLyrics] = useState(false);
+  const [lyrics, setLyrics] = useState(null);
+  const [loadingLyrics, setLoadingLyrics] = useState(false);
+
+  useEffect(() => {
+    setShowLyrics(false);
     setLyrics(null);
+  }, [currentSong]);
+
+  const handleLyricsToggle = async () => {
+    if (!currentSong) return;
+
+    if (showLyrics) {
+      setShowLyrics(false);
+      return;
+    }
+
+    setShowLyrics(true);
+
+    if (lyrics) return;
+
+    setLoadingLyrics(true);
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/lyrics?artist=${encodeURIComponent(currentSong.artist)}&title=${encodeURIComponent(currentSong.title)}`);
-      const data = await res.json();
+      const cleanTitle = currentSong.title.replace(/\([^()]*\)/g, '').trim();
+      const cleanArtist = currentSong.artist.split(',')[0].trim();
+
+      const response = await fetch(`http://127.0.0.1:5000/api/lyrics?artist=${encodeURIComponent(cleanArtist)}&title=${encodeURIComponent(cleanTitle)}`);
+      const data = await response.json();
+
       if (data.lyrics) {
         setLyrics(data.lyrics);
       } else {
-        setLyrics("Lyrics not available for this track.");
+        setLyrics("Lyrics not found for this track.\n(API limitation)");
       }
-    } catch {
+    } catch (error) {
+      console.error("Lyrics Error:", error);
       setLyrics("Failed to load lyrics.");
     }
-    setLyricsLoading(false);
-    setShowLyrics(true);
+    setLoadingLyrics(false);
   };
 
   return (
@@ -42,11 +61,25 @@ const RightSidebar = () => {
         </button>
       </div>
 
-      <div className="w-full aspect-square rounded-[1.5rem] bg-gray-200 mb-6 overflow-hidden shadow-md flex items-center justify-center">
-        {currentSong?.thumbnail ? (
-          <img src={currentSong.thumbnail} alt="cover" className="w-full h-full object-cover" />
+      <div className="w-full aspect-square rounded-[1.5rem] bg-gray-200 mb-6 overflow-hidden shadow-md relative">
+        {!showLyrics ? (
+          currentSong?.thumbnail ? (
+            <img src={currentSong.thumbnail} alt="cover" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-indigo-300 to-purple-400"></div>
+          )
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-indigo-300 to-purple-400"></div>
+          <div className="w-full h-full overflow-y-auto p-4 bg-white/80 backdrop-blur-md custom-scrollbar flex flex-col items-center">
+            {loadingLyrics ? (
+              <div className="flex-1 flex items-center justify-center text-sm font-bold text-indigo-500 animate-pulse">
+                Fetching lyrics...
+              </div>
+            ) : (
+              <pre className="text-xs font-semibold text-slate-700 whitespace-pre-wrap font-sans text-center leading-relaxed">
+                {lyrics}
+              </pre>
+            )}
+          </div>
         )}
       </div>
 
@@ -59,9 +92,6 @@ const RightSidebar = () => {
             {currentSong ? currentSong.artist : "Select a track to start"}
           </p>
         </div>
-        <button className="text-slate-400 hover:text-indigo-500">
-          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        </button>
       </div>
 
       <div className="mb-6">
@@ -102,44 +132,21 @@ const RightSidebar = () => {
 
         <button
           onClick={playNext}
-          disabled={currentIndex >= queue.length - 1}
-          className={`transition-colors ${currentIndex >= queue.length - 1 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 hover:text-indigo-500'}`}
+          disabled={!queue.length || currentIndex >= queue.length - 1}
+          className={`transition-colors ${(!queue.length || currentIndex >= queue.length - 1) ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 hover:text-indigo-500'}`}
         >
           <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/><path d="M6 6h2v12H6zm10 0v12h2V6h-2z" transform="translate(4,0)"/></svg>
         </button>
       </div>
 
       <button
-        onClick={fetchLyrics}
-        disabled={!currentSong || lyricsLoading}
-        className={`w-full py-3 bg-white/60 hover:bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 shadow-sm transition-colors flex items-center justify-center gap-2 ${!currentSong ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        onClick={handleLyricsToggle}
+        disabled={!currentSong}
+        className={`w-full py-3 border rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2 ${showLyrics ? 'bg-indigo-500 text-white border-indigo-500 hover:bg-indigo-600' : 'bg-white/60 hover:bg-white border-slate-200 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed'}`}
       >
         <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-        {lyricsLoading ? 'Loading...' : 'Lyrics'}
+        {showLyrics ? 'Hide Lyrics' : 'Show Lyrics'}
       </button>
-
-      {showLyrics && lyrics && (
-        <div className="mt-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-slate-200 max-h-48 overflow-y-auto custom-scrollbar">
-          <div className="flex justify-between items-center mb-2">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Lyrics</h4>
-            <button onClick={() => setShowLyrics(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
-          </div>
-          <pre className="text-xs text-slate-600 font-sans whitespace-pre-wrap leading-relaxed">{lyrics}</pre>
-        </div>
-      )}
-
-      {/* Visual Debugger: Queue Status */}
-      <div className="mb-6 bg-slate-100 rounded-xl p-3 border border-slate-200">
-        <div className="flex justify-between items-center mb-2">
-           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Queue Status</h4>
-           <span className="text-xs font-bold bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full">
-             {queue.length} Songs
-           </span>
-        </div>
-        <div className="text-[10px] text-slate-500 font-medium">
-           Current Index: {currentIndex}
-        </div>
-      </div>
     </aside>
   );
 };
