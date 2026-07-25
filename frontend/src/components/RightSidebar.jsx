@@ -1,8 +1,15 @@
 import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
 
+const formatTime = (time) => {
+  if (isNaN(time)) return "0:00";
+  const mins = Math.floor(time / 60);
+  const secs = Math.floor(time % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+};
+
 const RightSidebar = () => {
-  const { currentSong, isPlaying, togglePlay, playNext, playPrevious, queue, currentIndex } = usePlayer();
+  const { currentSong, isPlaying, togglePlay, playNext, playPrevious, queue, currentIndex, currentTime, duration, seek } = usePlayer();
 
   return (
     <aside className="w-[320px] bg-white/40 backdrop-blur-[40px] border border-white/60 rounded-[2rem] shadow-[0_8px_32px_rgba(31,38,135,0.05)] flex flex-col p-6 z-10 shrink-0">
@@ -37,12 +44,17 @@ const RightSidebar = () => {
 
       <div className="mb-6">
         <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-2">
-          <span>0:00</span>
-          <span>0:30</span>
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
-        <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-          <div className={`h-full bg-indigo-500 rounded-full ${isPlaying ? 'w-1/3' : 'w-0'} transition-all duration-1000`}></div>
-        </div>
+        <input
+          type="range"
+          min={0}
+          max={duration || 100}
+          value={currentTime}
+          onChange={(e) => seek(Number(e.target.value))}
+          className="w-full h-1.5 bg-slate-200 rounded-full appearance-none cursor-pointer accent-indigo-500 block"
+        />
       </div>
 
       <div className="flex items-center justify-center gap-6 mb-8">

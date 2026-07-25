@@ -12,6 +12,9 @@ interface PlayerContextValue {
   playPrevious: () => void
   queue: Song[]
   currentIndex: number
+  currentTime: number
+  duration: number
+  seek: (time: number) => void
 }
 
 const PlayerContext = createContext<PlayerContextValue | null>(null)
@@ -20,6 +23,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [queue, setQueue] = useState<Song[]>([])
   const [currentIndex, setCurrentIndex] = useState(-1)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const currentSong = currentIndex >= 0 && currentIndex < queue.length ? queue[currentIndex] : null
@@ -75,10 +80,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setCurrentIndex(prev => Math.max(prev - 1, 0))
   }, [])
 
+  const seek = useCallback((time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time
+      setCurrentTime(time)
+    }
+  }, [])
+
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
+    const updateTime = () => setCurrentTime(audio.currentTime)
+    const updateDuration = () => setDuration(audio.duration)
     const handleSongEnd = () => {
       if (currentIndex < queue.length - 1) {
         playNext()
@@ -87,14 +101,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    audio.addEventListener('timeupdate', updateTime)
+    audio.addEventListener('loadedmetadata', updateDuration)
     audio.addEventListener('ended', handleSongEnd)
-    return () => audio.removeEventListener('ended', handleSongEnd)
+
+    return () => {
+      audio.removeEventListener('timeupdate', updateTime)
+      audio.removeEventListener('loadedmetadata', updateDuration)
+      audio.removeEventListener('ended', handleSongEnd)
+    }
   }, [currentIndex, queue.length, playNext])
 
   return (
     <PlayerContext.Provider value={{
       currentSong, isPlaying, togglePlay, playSong,
-      playNext, playPrevious, queue, currentIndex
+      playNext, playPrevious, queue, currentIndex,
+      currentTime, duration, seek
     }}>
       {children}
     </PlayerContext.Provider>
@@ -105,6 +127,7 @@ const defaultCtx: PlayerContextValue = {
   currentSong: null, isPlaying: false, togglePlay: () => {},
   playSong: () => {}, playNext: () => {}, playPrevious: () => {},
   queue: [], currentIndex: -1,
+  currentTime: 0, duration: 0, seek: () => {},
 }
 
 export function usePlayer() {
