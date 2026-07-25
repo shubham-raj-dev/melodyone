@@ -85,5 +85,28 @@ def get_trending():
         print(f"Apple RSS Error: {e}")
         return jsonify({"error": "Backend code mein issue hai"}), 500
 
+@app.route('/api/lyrics', methods=['GET'])
+def get_lyrics():
+    artist = request.args.get('artist')
+    title = request.args.get('title')
+
+    if not artist or not title:
+        return jsonify({"error": "Artist aur title dono zaroori hain"}), 400
+
+    print(f"Fetching lyrics for: {title} by {artist}")
+    try:
+        url = f"https://api.lyrics.ovh/v1/{artist}/{title}"
+        response = requests.get(url)
+        data = response.json()
+
+        if 'lyrics' in data:
+            return jsonify({"lyrics": data['lyrics']})
+        else:
+            return jsonify({"error": "Is gaane ke lyrics API par available nahi hain"}), 404
+
+    except Exception as e:
+        print(f"Lyrics API Error: {e}")
+        return jsonify({"error": "Backend failed to fetch lyrics"}), 500
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

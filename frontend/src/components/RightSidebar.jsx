@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 
 const formatTime = (time) => {
@@ -10,6 +10,28 @@ const formatTime = (time) => {
 
 const RightSidebar = () => {
   const { currentSong, isPlaying, togglePlay, playNext, playPrevious, queue, currentIndex, currentTime, duration, seek } = usePlayer();
+  const [lyrics, setLyrics] = useState(null);
+  const [lyricsLoading, setLyricsLoading] = useState(false);
+  const [showLyrics, setShowLyrics] = useState(false);
+
+  const fetchLyrics = async () => {
+    if (!currentSong) return;
+    setLyricsLoading(true);
+    setLyrics(null);
+    try {
+      const res = await fetch(`http://127.0.0.1:5000/api/lyrics?artist=${encodeURIComponent(currentSong.artist)}&title=${encodeURIComponent(currentSong.title)}`);
+      const data = await res.json();
+      if (data.lyrics) {
+        setLyrics(data.lyrics);
+      } else {
+        setLyrics("Lyrics not available for this track.");
+      }
+    } catch {
+      setLyrics("Failed to load lyrics.");
+    }
+    setLyricsLoading(false);
+    setShowLyrics(true);
+  };
 
   return (
     <aside className="w-[320px] bg-white/40 backdrop-blur-[40px] border border-white/60 rounded-[2rem] shadow-[0_8px_32px_rgba(31,38,135,0.05)] flex flex-col p-6 z-10 shrink-0">
@@ -87,6 +109,25 @@ const RightSidebar = () => {
         </button>
       </div>
 
+      <button
+        onClick={fetchLyrics}
+        disabled={!currentSong || lyricsLoading}
+        className={`w-full py-3 bg-white/60 hover:bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 shadow-sm transition-colors flex items-center justify-center gap-2 ${!currentSong ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      >
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        {lyricsLoading ? 'Loading...' : 'Lyrics'}
+      </button>
+
+      {showLyrics && lyrics && (
+        <div className="mt-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-slate-200 max-h-48 overflow-y-auto custom-scrollbar">
+          <div className="flex justify-between items-center mb-2">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Lyrics</h4>
+            <button onClick={() => setShowLyrics(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+          </div>
+          <pre className="text-xs text-slate-600 font-sans whitespace-pre-wrap leading-relaxed">{lyrics}</pre>
+        </div>
+      )}
+
       {/* Visual Debugger: Queue Status */}
       <div className="mb-6 bg-slate-100 rounded-xl p-3 border border-slate-200">
         <div className="flex justify-between items-center mb-2">
@@ -99,11 +140,6 @@ const RightSidebar = () => {
            Current Index: {currentIndex}
         </div>
       </div>
-
-      <button className="w-full py-3 bg-white/60 hover:bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 shadow-sm transition-colors flex items-center justify-center gap-2">
-        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-        Lyrics
-      </button>
     </aside>
   );
 };
