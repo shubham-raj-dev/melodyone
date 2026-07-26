@@ -5,7 +5,7 @@ import { usePlayer } from '@/context/PlayerContext';
 import { useUser } from '@clerk/nextjs';
 
 export default function MobileBottomPlayer() {
-  const { currentSong, isPlaying, togglePlay, playNext, currentTime, duration } = usePlayer();
+  const { currentSong, isPlaying, togglePlay, playNext, playPrevious, currentTime, duration } = usePlayer();
   const { user, isSignedIn } = useUser();
   const [isLiked, setIsLiked] = useState(false);
 
@@ -59,16 +59,20 @@ export default function MobileBottomPlayer() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
-          <button onClick={handleLike} className="transition-colors">
+        <div className="flex items-center gap-3 md:gap-4 shrink-0">
+          <button onClick={handleLike} className="transition-colors px-1">
             {isLiked ? (
-              <span className="text-red-500 text-lg">♥</span>
+              <span className="text-red-500 text-xl">♥</span>
             ) : (
-              <span className="text-slate-400 text-lg">♡</span>
+              <span className="text-slate-400 text-xl">♡</span>
             )}
           </button>
 
-          <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-indigo-500 text-white rounded-full shadow-md">
+          <button onClick={playPrevious} className="text-slate-400 hover:text-indigo-500">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+          </button>
+
+          <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-indigo-500 text-white rounded-full shadow-md shrink-0">
             {isPlaying ? (
               <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             ) : (
