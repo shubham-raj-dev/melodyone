@@ -1,12 +1,32 @@
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import requests
+from pymongo import MongoClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://melodyone.vercel.app"])
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"])
+
+# MongoDB Connection Setup
+try:
+    mongo_uri = os.getenv("MONGO_URI")
+    if not mongo_uri:
+        raise ValueError("MONGO_URI .env file mein nahi mila!")
+
+    client = MongoClient(mongo_uri)
+    db = client.get_database()
+    users_collection = db['users']
+
+    client.admin.command('ping')
+    print("MongoDB Atlas successfully connected!")
+except Exception as e:
+    print(f"Database Connection Error: {e}")
 
 @app.after_request
 def add_security_headers(response):
