@@ -83,12 +83,13 @@ def get_trending():
     print("Fetching trending tracks from Apple RSS...")
     try:
         url = "https://rss.applemarketingtools.com/api/v2/in/music/most-played/10/songs.json"
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
         data = response.json()
 
         results = data.get('feed', {}).get('results', [])
         if not results:
-            return jsonify({"error": "Trending data nahi mila"}), 404
+            raise ValueError("Empty results from Apple RSS")
 
         trending_tracks = []
         for track in results[:4]:
@@ -96,14 +97,35 @@ def get_trending():
                 "title": track['name'],
                 "artist": track['artistName'],
                 "thumbnail": track['artworkUrl100'].replace('100x100', '600x600'),
-                "stream_url": ""  # Search se milega jab user click kare
+                "stream_url": ""
             })
 
         return jsonify(trending_tracks)
 
     except Exception as e:
-        print(f"Apple RSS Error: {e}")
-        return jsonify({"error": "Backend code mein issue hai"}), 500
+        print(f"Apple RSS API Failed or Timed Out: {e}")
+
+        fallback_data = [
+            {
+                "title": "Starboy",
+                "artist": "The Weeknd",
+                "thumbnail": "https://i.ytimg.com/vi/34Na4j8HLjc/hqdefault.jpg",
+                "stream_url": ""
+            },
+            {
+                "title": "Shape of You",
+                "artist": "Ed Sheeran",
+                "thumbnail": "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg",
+                "stream_url": ""
+            },
+            {
+                "title": "Blinding Lights",
+                "artist": "The Weeknd",
+                "thumbnail": "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
+                "stream_url": ""
+            }
+        ]
+        return jsonify(fallback_data), 200
 
 @app.route('/api/lyrics', methods=['GET'])
 def get_lyrics():
