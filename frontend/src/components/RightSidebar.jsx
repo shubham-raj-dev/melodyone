@@ -39,7 +39,7 @@ const RightSidebar = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clerk_id: user.id,
-          song: { videoId: currentSong.videoId, title: currentSong.title, artist: currentSong.artist, thumbnail: currentSong.thumbnail }
+          song: { videoId: currentSong.videoId, title: currentSong.title, artist: currentSong.artist, thumbnail: currentSong.thumbnail, stream_url: currentSong.stream_url }
         })
       });
       const data = await res.json();

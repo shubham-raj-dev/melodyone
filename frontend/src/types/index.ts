@@ -1,4 +1,5 @@
 export interface Song {
+  videoId?: string
   title: string
   artist: string
   stream_url: string
