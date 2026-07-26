@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { usePlayer } from '../context/PlayerContext';
 
 const formatTime = (time) => {
@@ -9,11 +10,49 @@ const formatTime = (time) => {
 };
 
 const RightSidebar = () => {
+  const { user, isSignedIn } = useUser();
   const { currentSong, isPlaying, togglePlay, playNext, playPrevious, queue, currentIndex, currentTime, duration, seek } = usePlayer();
 
   const [showLyrics, setShowLyrics] = useState(false);
   const [lyrics, setLyrics] = useState(null);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
+  const [likedSongs, setLikedSongs] = useState(new Set());
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      fetch(`http://127.0.0.1:5000/api/user/liked?clerk_id=${user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.songs) {
+            setLikedSongs(new Set(data.songs.map(s => s.title)));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isSignedIn, user]);
+
+  const toggleLike = async () => {
+    if (!isSignedIn || !user || !currentSong) return;
+    try {
+      const res = await fetch('http://127.0.0.1:5000/api/user/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clerk_id: user.id,
+          song: { title: currentSong.title, artist: currentSong.artist, thumbnail: currentSong.thumbnail }
+        })
+      });
+      const data = await res.json();
+      setLikedSongs(prev => {
+        const next = new Set(prev);
+        if (data.liked) next.add(currentSong.title);
+        else next.delete(currentSong.title);
+        return next;
+      });
+    } catch (err) {
+      console.error("Like Error:", err);
+    }
+  };
 
   useEffect(() => {
     setShowLyrics(false);
@@ -61,13 +100,27 @@ const RightSidebar = () => {
         </button>
       </div>
 
-      <div className="w-full aspect-square rounded-[1.5rem] bg-gray-200 mb-6 overflow-hidden shadow-md relative">
+      <div className="w-full aspect-square rounded-[1.5rem] bg-gray-200 mb-6 overflow-hidden shadow-md relative group">
         {!showLyrics ? (
-          currentSong?.thumbnail ? (
-            <img src={currentSong.thumbnail} alt="cover" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-indigo-300 to-purple-400"></div>
-          )
+          <>
+            {currentSong?.thumbnail ? (
+              <img src={currentSong.thumbnail} alt="cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-indigo-300 to-purple-400"></div>
+            )}
+            <button
+              onClick={toggleLike}
+              disabled={!currentSong}
+              className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm transition-all ${
+                !currentSong ? 'opacity-0' :
+                currentSong && likedSongs.has(currentSong.title)
+                  ? 'bg-red-500 text-white opacity-100'
+                  : 'bg-white/30 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 hover:bg-white/50'
+              }`}
+            >
+              {currentSong && likedSongs.has(currentSong.title) ? '♥' : '♡'}
+            </button>
+          </>
         ) : (
           <div className="w-full h-full overflow-y-auto p-4 bg-white/80 backdrop-blur-md custom-scrollbar flex flex-col items-center">
             {loadingLyrics ? (
@@ -84,10 +137,22 @@ const RightSidebar = () => {
       </div>
 
       <div className="flex items-center justify-between mb-6">
-        <div className="overflow-hidden">
-          <h4 className="text-xl font-extrabold text-slate-900 truncate">
-            {currentSong ? currentSong.title : "Not Playing"}
-          </h4>
+        <div className="overflow-hidden min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h4 className="text-xl font-extrabold text-slate-900 truncate">
+              {currentSong ? currentSong.title : "Not Playing"}
+            </h4>
+            <button
+              onClick={toggleLike}
+              disabled={!currentSong}
+              className={`shrink-0 text-lg transition-colors ${
+                !currentSong ? 'opacity-30 cursor-not-allowed' :
+                currentSong && likedSongs.has(currentSong.title) ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+              }`}
+            >
+              {currentSong && likedSongs.has(currentSong.title) ? '♥' : '♡'}
+            </button>
+          </div>
           <p className="text-sm font-medium text-slate-500 truncate">
             {currentSong ? currentSong.artist : "Select a track to start"}
           </p>
