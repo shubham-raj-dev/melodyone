@@ -128,5 +128,34 @@ def get_lyrics():
         print(f"Lyrics API Error: {e}")
         return jsonify({"error": "Backend failed to fetch lyrics"}), 500
 
+@app.route('/api/user/sync', methods=['POST'])
+def sync_user():
+    data = request.json
+    clerk_id = data.get('clerk_id')
+    email = data.get('email')
+
+    if not clerk_id:
+        return jsonify({"error": "Clerk ID is strictly required"}), 400
+
+    try:
+        user = users_collection.find_one({"clerk_id": clerk_id})
+
+        if not user:
+            new_user = {
+                "clerk_id": clerk_id,
+                "email": email,
+                "full_name": data.get('full_name', ''),
+                "liked_songs": [],
+                "playlists": []
+            }
+            users_collection.insert_one(new_user)
+            print(f"New user created in Database: {email}")
+            return jsonify({"message": "User profile initialized", "status": "new"}), 201
+
+        return jsonify({"message": "User verified", "status": "existing"}), 200
+    except Exception as e:
+        print(f"User Sync Error: {e}")
+        return jsonify({"error": "Database operation failed"}), 500
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
