@@ -1,9 +1,49 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useUser } from "@clerk/nextjs"
 import { usePlayerStore } from "@/store/player-store"
 
 export default function NowPlaying() {
+  const { user, isSignedIn } = useUser()
   const { currentSong, isPlaying, queue, setSong, togglePlay, next, prev } = usePlayerStore()
+  const [likedSongs, setLikedSongs] = useState(new Set())
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      fetch(`http://127.0.0.1:5000/api/user/liked?clerk_id=${user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.songs) {
+            setLikedSongs(new Set(data.songs.map((s: { title: string }) => s.title)))
+          }
+        })
+        .catch(() => {})
+    }
+  }, [isSignedIn, user])
+
+  const toggleLike = async (song: { title: string; artist: string; thumbnail: string } | null) => {
+    if (!isSignedIn || !user || !song) return
+    try {
+      const res = await fetch('http://127.0.0.1:5000/api/user/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clerk_id: user.id,
+          song: { title: song.title, artist: song.artist, thumbnail: song.thumbnail }
+        })
+      })
+      const data = await res.json()
+      setLikedSongs(prev => {
+        const next = new Set(prev)
+        if (data.liked) next.add(song.title)
+        else next.delete(song.title)
+        return next
+      })
+    } catch (err) {
+      console.error("Like Error:", err)
+    }
+  }
 
   return (
     <aside className="w-[300px] bg-white/40 backdrop-blur-[40px] border border-white/60 rounded-[2rem] shadow-[0_8px_32px_rgba(31,38,135,0.05)] flex flex-col p-6 z-10 shrink-0">
@@ -18,13 +58,13 @@ export default function NowPlaying() {
         ) : (
           <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80" alt="" className="w-full h-full object-cover opacity-90" />
         )}
-        <div className="absolute top-3 right-3 w-8 h-8 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-white/50 transition-colors shadow-sm text-sm">❤</div>
+        <div onClick={() => toggleLike(currentSong)} className="absolute top-3 right-3 w-8 h-8 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-white/50 transition-colors shadow-sm text-sm">{currentSong && likedSongs.has(currentSong.title) ? '♥' : '♡'}</div>
       </div>
 
       <div className="mb-6">
         <h2 className="text-xl font-extrabold text-slate-900 truncate flex items-center justify-between">
           {currentSong ? currentSong.title : "Not Playing"}
-          <button className="text-indigo-500 text-sm">❤</button>
+          <button onClick={() => toggleLike(currentSong)} className={`text-sm ${currentSong && likedSongs.has(currentSong.title) ? 'text-red-500' : 'text-indigo-500'}`}>{currentSong && likedSongs.has(currentSong.title) ? '♥' : '♡'}</button>
         </h2>
         <p className="text-slate-500 font-medium text-sm truncate">{currentSong ? currentSong.artist : "Select a track to start"}</p>
       </div>

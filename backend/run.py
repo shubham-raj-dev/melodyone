@@ -157,5 +157,55 @@ def sync_user():
         print(f"User Sync Error: {e}")
         return jsonify({"error": "Database operation failed"}), 500
 
+@app.route('/api/user/like', methods=['POST'])
+def toggle_like():
+    data = request.json
+    clerk_id = data.get('clerk_id')
+    song = data.get('song')
+
+    if not clerk_id or not song:
+        return jsonify({"error": "Missing user ID or song data"}), 400
+
+    try:
+        user = users_collection.find_one({"clerk_id": clerk_id})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        song_title = song.get('title')
+        liked_songs = user.get('liked_songs', [])
+
+        is_liked = any(s.get('title') == song_title for s in liked_songs)
+
+        if is_liked:
+            users_collection.update_one(
+                {"clerk_id": clerk_id},
+                {"$pull": {"liked_songs": {"title": song_title}}}
+            )
+            return jsonify({"message": "Removed from liked", "liked": False}), 200
+        else:
+            users_collection.update_one(
+                {"clerk_id": clerk_id},
+                {"$push": {"liked_songs": song}}
+            )
+            return jsonify({"message": "Added to liked", "liked": True}), 200
+
+    except Exception as e:
+        print(f"Like System Error: {e}")
+        return jsonify({"error": "Failed to update liked songs"}), 500
+
+@app.route('/api/user/liked', methods=['GET'])
+def get_liked_songs():
+    clerk_id = request.args.get('clerk_id')
+    if not clerk_id:
+        return jsonify({"error": "Clerk ID required"}), 400
+    try:
+        user = users_collection.find_one({"clerk_id": clerk_id})
+        if not user:
+            return jsonify({"songs": []}), 200
+        return jsonify({"songs": user.get('liked_songs', [])}), 200
+    except Exception as e:
+        print(f"Get Liked Error: {e}")
+        return jsonify({"error": "Failed to fetch liked songs"}), 500
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
