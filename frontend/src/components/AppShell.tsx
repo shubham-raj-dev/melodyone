@@ -3,7 +3,6 @@
 import { useUser } from "@clerk/nextjs"
 import { useEffect } from "react"
 import Sidebar from "@/components/Sidebar"
-import RightSidebar from "@/components/RightSidebar"
 import BottomPlayer from "@/components/BottomPlayer"
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -27,18 +26,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [isSignedIn, user])
 
   return (
-    <div className="relative h-screen w-full font-sans text-slate-800 overflow-hidden flex flex-col">
-      <div className="flex flex-1 overflow-hidden h-[calc(100vh-90px)] p-4 gap-4">
-        <Sidebar />
+    <div className="flex h-screen overflow-hidden bg-[#eef2f9]">
+      <Sidebar />
 
-        <main className="flex-1 h-full overflow-y-auto px-4 z-10 custom-scrollbar">
-          {children}
-        </main>
+      <main className="flex-1 overflow-y-auto pb-24 md:pb-28 w-full p-4 md:p-6">
+        {children}
+      </main>
 
-        <RightSidebar />
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomPlayer />
       </div>
-
-      <BottomPlayer />
     </div>
   )
 }
