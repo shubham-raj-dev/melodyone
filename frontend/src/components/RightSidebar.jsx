@@ -45,8 +45,8 @@ const RightSidebar = () => {
       const data = await res.json();
       setLikedSongs(prev => {
         const next = new Set(prev);
-        if (data.liked) next.add(currentSong.title);
-        else next.delete(currentSong.title);
+        if (data.liked) next.add(currentSong.videoId);
+        else next.delete(currentSong.videoId);
         return next;
       });
     } catch (err) {
