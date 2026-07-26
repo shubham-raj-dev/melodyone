@@ -24,7 +24,7 @@ const RightSidebar = () => {
         .then(res => res.json())
         .then(data => {
           if (data.songs) {
-            setLikedSongs(new Set(data.songs.map(s => s.title)));
+            setLikedSongs(new Set(data.songs.map(s => s.videoId)));
           }
         })
         .catch(() => {});
@@ -39,7 +39,7 @@ const RightSidebar = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clerk_id: user.id,
-          song: { title: currentSong.title, artist: currentSong.artist, thumbnail: currentSong.thumbnail }
+          song: { videoId: currentSong.videoId, title: currentSong.title, artist: currentSong.artist, thumbnail: currentSong.thumbnail }
         })
       });
       const data = await res.json();
@@ -113,12 +113,12 @@ const RightSidebar = () => {
               disabled={!currentSong}
               className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm transition-all ${
                 !currentSong ? 'opacity-0' :
-                currentSong && likedSongs.has(currentSong.title)
+                currentSong && likedSongs.has(currentSong.videoId)
                   ? 'bg-red-500 text-white opacity-100'
                   : 'bg-white/30 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 hover:bg-white/50'
               }`}
             >
-              {currentSong && likedSongs.has(currentSong.title) ? '♥' : '♡'}
+              {currentSong && likedSongs.has(currentSong.videoId) ? '♥' : '♡'}
             </button>
           </>
         ) : (
@@ -147,10 +147,10 @@ const RightSidebar = () => {
               disabled={!currentSong}
               className={`shrink-0 text-lg transition-colors ${
                 !currentSong ? 'opacity-30 cursor-not-allowed' :
-                currentSong && likedSongs.has(currentSong.title) ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+                currentSong && likedSongs.has(currentSong.videoId) ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
               }`}
             >
-              {currentSong && likedSongs.has(currentSong.title) ? '♥' : '♡'}
+              {currentSong && likedSongs.has(currentSong.videoId) ? '♥' : '♡'}
             </button>
           </div>
           <p className="text-sm font-medium text-slate-500 truncate">

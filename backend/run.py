@@ -66,6 +66,7 @@ def search_song():
         track = data['results'][0]
 
         result = {
+            "videoId": str(track['trackId']),
             "title": track['trackName'],
             "artist": track['artistName'],
             "thumbnail": track.get('artworkUrl100', '').replace('100x100', '600x600'),
@@ -107,18 +108,21 @@ def get_trending():
 
         fallback_data = [
             {
+                "videoId": "fallback_starboy",
                 "title": "Starboy",
                 "artist": "The Weeknd",
                 "thumbnail": "https://i.ytimg.com/vi/34Na4j8HLjc/hqdefault.jpg",
                 "stream_url": ""
             },
             {
+                "videoId": "fallback_shape_of_you",
                 "title": "Shape of You",
                 "artist": "Ed Sheeran",
                 "thumbnail": "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg",
                 "stream_url": ""
             },
             {
+                "videoId": "fallback_blinding_lights",
                 "title": "Blinding Lights",
                 "artist": "The Weeknd",
                 "thumbnail": "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
@@ -185,23 +189,23 @@ def toggle_like():
     clerk_id = data.get('clerk_id')
     song = data.get('song')
 
-    if not clerk_id or not song:
-        return jsonify({"error": "Missing user ID or song data"}), 400
+    if not clerk_id or not song or not song.get('videoId'):
+        return jsonify({"error": "Missing user ID or song videoId"}), 400
 
     try:
         user = users_collection.find_one({"clerk_id": clerk_id})
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        song_title = song.get('title')
+        video_id = song.get('videoId')
         liked_songs = user.get('liked_songs', [])
 
-        is_liked = any(s.get('title') == song_title for s in liked_songs)
+        is_liked = any(s.get('videoId') == video_id for s in liked_songs)
 
         if is_liked:
             users_collection.update_one(
                 {"clerk_id": clerk_id},
-                {"$pull": {"liked_songs": {"title": song_title}}}
+                {"$pull": {"liked_songs": {"videoId": video_id}}}
             )
             return jsonify({"message": "Removed from liked", "liked": False}), 200
         else:

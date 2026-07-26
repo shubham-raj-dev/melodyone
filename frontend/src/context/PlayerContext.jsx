@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useContext, useRef, useEffect } from 'react';
 
-/** @typedef {{ title: string, artist: string, thumbnail: string, stream_url: string }} Song */
+/** @typedef {{ videoId: string, title: string, artist: string, thumbnail: string, stream_url: string }} Song */
 
 /** @type {React.Context<{ currentSong: Song | null, isPlaying: boolean, playSong: (song: Song) => void, togglePlay: () => void }>} */
 const PlayerContext = createContext({
