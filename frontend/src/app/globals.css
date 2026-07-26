@@ -21,5 +21,5 @@
 .custom-scrollbar::-webkit-scrollbar { height: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.2); border-radius: 4px; }
 
-/* Hide Clerk Development Badge (fallback) */
+.cl-internal-b3al6g { display: none !important; }
 a[href*="clerk.com/docs"] { display: none !important; }
