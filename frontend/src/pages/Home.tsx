@@ -76,7 +76,7 @@ export default function Home() {
 
   return (
     <div className="pb-10">
-      <header className="flex items-center justify-between gap-6 mb-8 mt-2">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-14 md:pt-2">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
             Good Morning, {mounted ? <UserGreeting /> : 'Guest'} ✨
@@ -84,9 +84,9 @@ export default function Home() {
           <p className="text-slate-500 mt-1 font-medium text-sm">Let the music heal your soul</p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-full px-5 py-2.5 w-80 focus-within:bg-white transition-all">
-            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-400 mr-2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <div className="flex items-center w-full md:w-auto">
+          <div className="flex items-center bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-full px-5 py-2.5 w-full md:w-80 focus-within:bg-white transition-all">
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-400 mr-2 shrink-0" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input
               type="text"
               value={query}

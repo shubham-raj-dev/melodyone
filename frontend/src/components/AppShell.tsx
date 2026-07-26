@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import Sidebar from "@/components/Sidebar"
 import RightSidebar from "@/components/RightSidebar"
 import BottomPlayer from "@/components/BottomPlayer"
+import MobileBottomPlayer from "@/components/MobileBottomPlayer"
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, isSignedIn } = useUser()
@@ -38,8 +39,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <RightSidebar />
       </div>
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[70] bg-white/90 backdrop-blur-xl border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <BottomPlayer />
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[70]">
+        <MobileBottomPlayer />
       </div>
     </div>
   )
