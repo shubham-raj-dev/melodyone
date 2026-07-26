@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000", "https://melodyone.vercel.app"])
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"])
 
 # MongoDB Connection Setup
