@@ -43,3 +43,6 @@ MelodyOne/
 │   ├── src/context/        # Global State (PlayerContext)
 │   └── middleware.ts       # Clerk route pr
 otection
+
+
+
