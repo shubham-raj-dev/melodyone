@@ -17,7 +17,7 @@ export default function Search() {
     setResults([])
 
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/search?song=${encodeURIComponent(query)}`)
+      const res = await fetch(`http://127.0.0.1:5001/api/search?song=${encodeURIComponent(query)}`)
       const data = await res.json()
       if (data.stream_url) {
         setResults([data])

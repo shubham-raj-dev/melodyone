@@ -20,7 +20,7 @@ const RightSidebar = () => {
 
   useEffect(() => {
     if (isSignedIn && user) {
-      fetch(`http://127.0.0.1:5000/api/user/liked?clerk_id=${user.id}`)
+      fetch(`http://127.0.0.1:5001/api/user/liked?clerk_id=${user.id}`)
         .then(res => res.json())
         .then(data => {
           if (data.songs) {
@@ -34,7 +34,7 @@ const RightSidebar = () => {
   const toggleLike = async () => {
     if (!isSignedIn || !user || !currentSong) return;
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/user/like', {
+      const res = await fetch('http://127.0.0.1:5001/api/user/like', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +76,7 @@ const RightSidebar = () => {
       const cleanTitle = currentSong.title.replace(/\([^()]*\)/g, '').trim();
       const cleanArtist = currentSong.artist.split(',')[0].trim();
 
-      const response = await fetch(`http://127.0.0.1:5000/api/lyrics?artist=${encodeURIComponent(cleanArtist)}&title=${encodeURIComponent(cleanTitle)}`);
+      const response = await fetch(`http://127.0.0.1:5001/api/lyrics?artist=${encodeURIComponent(cleanArtist)}&title=${encodeURIComponent(cleanTitle)}`);
       const data = await response.json();
 
       if (data.lyrics) {

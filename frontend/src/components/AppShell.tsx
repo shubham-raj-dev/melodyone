@@ -12,7 +12,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isSignedIn && user) {
-      fetch('http://127.0.0.1:5000/api/user/sync', {
+      fetch('http://127.0.0.1:5001/api/user/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

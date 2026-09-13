@@ -27,7 +27,7 @@ export default function Home() {
   useEffect(() => {
     const fetchTrending = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/trending');
+        const response = await fetch('http://127.0.0.1:5001/api/trending');
         const data = await response.json();
         if (!data.error) {
           setTrending(data);
@@ -43,7 +43,7 @@ export default function Home() {
 
   const playTrending = async (track: Song) => {
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/search?song=${encodeURIComponent(track.title + ' ' + track.artist)}`);
+      const res = await fetch(`http://127.0.0.1:5001/api/search?song=${encodeURIComponent(track.title + ' ' + track.artist)}`);
       const data = await res.json();
       if (data.stream_url) {
         playSong(data);
@@ -58,7 +58,7 @@ export default function Home() {
       setLoading(true);
       setSearchedSong(null);
       try {
-        const response = await fetch(`http://127.0.0.1:5000/api/search?song=${encodeURIComponent(query)}`);
+        const response = await fetch(`http://127.0.0.1:5001/api/search?song=${encodeURIComponent(query)}`);
         const data = await response.json();
 
         if (data.error) {
