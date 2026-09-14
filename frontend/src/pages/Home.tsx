@@ -68,7 +68,6 @@ export default function Home() {
         }
       } catch (error) {
         console.error("Fetch Error:", error);
-        alert("Backend se connect nahi ho pa raha hai.");
       }
       setLoading(false);
     }
