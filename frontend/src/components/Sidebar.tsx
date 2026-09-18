@@ -73,7 +73,7 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        <div className="shrink-0 p-6 pb-28 md:pb-6 border-t border-white/60">
+        <div className="shrink-0 p-6 pb-28 md:pb-4 border-t border-white/60">
           <Show when="signed-in">
             <div className="bg-white/60 backdrop-blur-md rounded-2xl p-2 flex items-center justify-between border border-white/80 shadow-sm transition-all hover:bg-white/80">
               <div className="flex items-center gap-3 overflow-hidden">
