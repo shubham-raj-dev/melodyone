@@ -13,7 +13,7 @@ function LikedContent() {
 
   useEffect(() => {
     if (isSignedIn && user) {
-      fetch(`http://127.0.0.1:5001/api/user/liked?clerk_id=${user.id}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/liked?clerk_id=${user.id}`)
         .then(res => res.json())
         .then(data => {
           if (data.songs) setLikedSongs(data.songs);
@@ -33,7 +33,7 @@ function LikedContent() {
       playSong(track);
     } else {
       try {
-        const res = await fetch(`http://127.0.0.1:5001/api/search?song=${encodeURIComponent(track.title + ' ' + track.artist)}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/search?song=${encodeURIComponent(track.title + ' ' + track.artist)}`);
         const data = await res.json();
         if (data.stream_url) playSong(data);
       } catch (err) {
