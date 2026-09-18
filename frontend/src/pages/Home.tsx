@@ -5,9 +5,33 @@ import { useUser } from '@clerk/nextjs';
 import { usePlayer } from '@/context/PlayerContext';
 import type { Song } from '@/types';
 
-function UserGreeting() {
+function UserGreetingInner() {
   const { user } = useUser();
-  return <>{user?.firstName || 'Guest'}</>;
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const currentHour = new Date().getHours();
+    if (currentHour < 12) {
+      setGreeting('Good Morning');
+    } else if (currentHour < 18) {
+      setGreeting('Good Afternoon');
+    } else {
+      setGreeting('Good Evening');
+    }
+  }, []);
+
+  return (
+    <span>
+      {greeting ? `${greeting}, ${user?.firstName || 'Guest'} ✨` : `Welcome, ${user?.firstName || 'Guest'} ✨`}
+    </span>
+  );
+}
+
+function UserGreeting() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <span>Welcome, Guest ✨</span>;
+  return <UserGreetingInner />;
 }
 
 export default function Home() {
@@ -82,7 +106,7 @@ export default function Home() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-14 md:pt-2">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
-            Good Morning, {mounted ? <UserGreeting /> : 'Guest'} ✨
+            <UserGreeting />
           </h2>
           <p className="text-slate-500 mt-1 font-medium text-sm">Let the music heal your soul</p>
         </div>
