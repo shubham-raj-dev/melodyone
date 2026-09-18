@@ -50,7 +50,7 @@ export default function Sidebar() {
           <h1 className="text-xl font-bold tracking-tight text-slate-900 truncate">MelodyOne</h1>
         </div>
 
-        <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
+        <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2 pb-20 md:pb-0">
           {navItems.map((item) => {
             const isActive = pathname === item.path
             return (
