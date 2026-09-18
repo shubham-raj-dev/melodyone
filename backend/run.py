@@ -51,7 +51,7 @@ def home():
 def search_song():
     query = request.args.get('song')
     if not query:
-        return jsonify({"error": "Bhai, query toh bhej"}), 400
+        return jsonify({"error": "Search query is required"}), 400
 
     print(f"Searching iTunes for: {query}")
 
@@ -61,7 +61,7 @@ def search_song():
         data = response.json()
 
         if data['resultCount'] == 0:
-            return jsonify({"error": "Gaana nahi mila"}), 404
+            return jsonify({"error": "Track not found"}), 404
 
         track = data['results'][0]
 
@@ -137,7 +137,7 @@ def get_lyrics():
     title = request.args.get('title')
 
     if not artist or not title:
-        return jsonify({"error": "Artist aur title dono zaroori hain"}), 400
+        return jsonify({"error": "Both artist and title are required"}), 400
 
     print(f"Fetching lyrics for: {title} by {artist}")
     try:
@@ -148,7 +148,7 @@ def get_lyrics():
         if 'lyrics' in data:
             return jsonify({"lyrics": data['lyrics']})
         else:
-            return jsonify({"error": "Is gaane ke lyrics API par available nahi hain"}), 404
+            return jsonify({"error": "Lyrics not available for this track"}), 404
 
     except Exception as e:
         print(f"Lyrics API Error: {e}")
