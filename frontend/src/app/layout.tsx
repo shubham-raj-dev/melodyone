@@ -5,7 +5,7 @@ import "./globals.css"
 import Providers from "@/components/Providers"
 import AppShell from "@/components/AppShell"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
