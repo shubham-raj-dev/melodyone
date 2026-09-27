@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Show, SignInButton, UserButton } from "@clerk/nextjs"
 
 const navItems = [
@@ -45,9 +46,7 @@ export default function Sidebar() {
       <aside className={`fixed md:static left-0 z-[50] w-[260px] bg-white/70 md:bg-white/40 backdrop-blur-xl border-r border-white/60 shadow-[0_8px_32px_rgba(31,38,135,0.05)] flex flex-col h-[100dvh] transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="flex-1 flex flex-col overflow-y-auto p-6 custom-scrollbar pr-2">
           <div className="flex items-center gap-3 mb-8 mt-8 md:mt-0 cursor-pointer shrink-0">
-            <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg>
-            </div>
+            <Image src="/logo.png" alt="MelodyOne Logo" width={40} height={40} className="rounded-xl shadow-md shrink-0 object-cover" />
             <h1 className="text-xl font-bold tracking-tight text-slate-900 truncate">MelodyOne</h1>
           </div>
 
