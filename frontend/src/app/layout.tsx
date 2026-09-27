@@ -5,6 +5,7 @@ import "./globals.css"
 import Providers from "@/components/Providers"
 import AppShell from "@/components/AppShell"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,6 +47,7 @@ export default function RootLayout({
           <div className="fixed top-[20%] left-[30%] w-[40vw] h-[40vw] bg-blue-100/40 rounded-full blur-[100px] pointer-events-none -z-10" />
           <Providers><AppShell>{children}</AppShell></Providers>
           <SpeedInsights />
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
