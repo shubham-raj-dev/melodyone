@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs"
 import "./globals.css"
 import Providers from "@/components/Providers"
 import AppShell from "@/components/AppShell"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({
           <div className="fixed bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-fuchsia-100/50 rounded-full blur-[150px] pointer-events-none -z-10" />
           <div className="fixed top-[20%] left-[30%] w-[40vw] h-[40vw] bg-blue-100/40 rounded-full blur-[100px] pointer-events-none -z-10" />
           <Providers><AppShell>{children}</AppShell></Providers>
+          <SpeedInsights />
         </body>
       </html>
     </ClerkProvider>
